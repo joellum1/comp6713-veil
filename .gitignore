@@ -1,0 +1,14 @@
+# python
+__pycache__/
+
+# environments
+.env
+.venv
+venv/
+
+# ignore data - download independently
+data/*
+!data/README.md
+
+# jupyter checkpoints
+.ipynb_checkpoints/
