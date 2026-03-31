@@ -7,7 +7,7 @@ Sentiment analysis classification on financial news.
 ## Datasets
 
 | Dataset | Source |
-|---|---|---|
+|---|---|
 | Financial PhraseBank | [Kaggle](https://www.kaggle.com/datasets/ankurzing/sentiment-analysis-for-financial-news) |
 | *(Second dataset TBD)* | *(link TBD)* |
  
