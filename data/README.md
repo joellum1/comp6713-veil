@@ -6,6 +6,7 @@ All data files are ignored and must be downloaded (through scripts provided).
 
 # Folder Structure
 
+```text
 data
 ├── processed
 │   ├── sentiment
@@ -16,6 +17,7 @@ data
 ├── README.md
 ├── process.py
 └── retrieve.py
+```
 
 ---
 
