@@ -12,3 +12,6 @@ data/process
 
 # jupyter checkpoints
 .ipynb_checkpoints/
+
+# misc
+.DS_Store
