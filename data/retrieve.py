@@ -12,7 +12,15 @@ import sys
 # ----- file paths ---------------
 
 BASE = os.path.join(os.path.dirname(__file__))
+
 RAW = os.path.join(BASE, "raw")
+os.makedirs(RAW, exist_ok=True)
+
+SENTIMENT = os.path.join(RAW, "sentiment")
+os.makedirs(SENTIMENT, exist_ok=True)
+SUMMARY = os.path.join(RAW, "sentiment")
+os.makedirs(SUMMARY, exist_ok=True)
+
 
 # ----- helpers ------------------
 
@@ -34,7 +42,7 @@ def kaggle(dataset, dest):
 
 # dataset 1: financial phrasebank
 def download_fpb():
-    FPB = os.path.join(RAW, "FPB")
+    FPB = os.path.join(SENTIMENT, "FPB")
     os.makedirs(FPB, exist_ok=True)
 
     kaggle("ankurzing/sentiment-analysis-for-financial-news", FPB)
@@ -54,4 +62,4 @@ if __name__ == "__main__":
     requirements()
     download_fpb()
 
-    print("\n\nDatasets successfully downloaded")
+    print("\n\nDatasets successfully downloaded.")
