@@ -12,7 +12,7 @@ import sys
 # ----- file paths ---------------
 
 BASE = os.path.join(os.path.dirname(__file__))
-
+RAW = os.path.join(BASE, "raw")
 
 # ----- helpers ------------------
 
@@ -34,7 +34,7 @@ def kaggle(dataset, dest):
 
 # dataset 1: financial phrasebank
 def download_fpb():
-    FPB = os.path.join(BASE, "FPB")
+    FPB = os.path.join(RAW, "FPB")
     os.makedirs(FPB, exist_ok=True)
 
     kaggle("ankurzing/sentiment-analysis-for-financial-news", FPB)
