@@ -32,8 +32,8 @@ def kaggle(dataset, dest):
     print(f"[Kaggle] Done: {dataset}")
 
 
-# dataset 1: financial phrasebank
-def download_fpb():
+def get_sentiment_dataset():
+    # dataset 1: financial phrasebank
     FPB = os.path.join(RAW, "FPB")
     os.makedirs(FPB, exist_ok=True)
 
