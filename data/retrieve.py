@@ -53,7 +53,7 @@ def flatten_folder(base):
             dst = os.path.join(base, item)
 
             shutil.move(src, dst)
-        
+
         # remove subdirectory
         os.rmdir(nested)
 
@@ -61,16 +61,16 @@ def flatten_folder(base):
 # --- news sentiment
 # dataset 1: financial phrasebank
 def download_fpb():
-    FPB = os.path.join(SENTIMENT, "FPB")
-    os.makedirs(FPB, exist_ok=True)
+    fpb = os.path.join(SENTIMENT, "FPB")
+    os.makedirs(fpb, exist_ok=True)
 
-    kaggle("ankurzing/sentiment-analysis-for-financial-news", FPB)
+    kaggle("ankurzing/sentiment-analysis-for-financial-news", fpb)
 
-    flatten_folder(FPB)
+    flatten_folder(fpb)
 
     # standardised name
-    src = os.path.join(FPB, "all-data.csv")
-    dst = os.path.join(FPB, "full.csv")
+    src = os.path.join(fpb, "all-data.csv")
+    dst = os.path.join(fpb, "full.csv")
     if os.path.exists(src):
         os.rename(src, dst)
 
@@ -78,29 +78,29 @@ def download_fpb():
 # --- news summary
 def get_summary_dataset():
     # dataset 1: news summary
-    def download_NS():
-        NS = os.path.join(SUMMARY, "NS")
-        os.makedirs(NS, exist_ok=True)
+    def download_ns():
+        ns = os.path.join(SUMMARY, "NS")
+        os.makedirs(ns, exist_ok=True)
 
-        kaggle("sunnysai12345/news-summary", NS)
+        kaggle("sunnysai12345/news-summary", ns)
 
         # standardised name
-        src = os.path.join(NS, "news_summary.csv")
-        dst = os.path.join(NS, "full.csv")
+        src = os.path.join(ns, "news_summary.csv")
+        dst = os.path.join(ns, "full.csv")
         if os.path.exists(src):
             os.rename(src, dst)
 
     # dataset 2: CNN-DailyMail News Text Summarisation
-    def download_CNN_DM():
-        CNN_DM = os.path.join(SUMMARY, "CNN_DM")
-        os.makedirs(CNN_DM, exist_ok=True)
+    def download_cnn_dm():
+        cnn_dm = os.path.join(SUMMARY, "CNN_DM")
+        os.makedirs(cnn_dm, exist_ok=True)
 
-        kaggle("gowrishankarp/newspaper-text-summarization-cnn-dailymail", CNN_DM)
+        kaggle("gowrishankarp/newspaper-text-summarization-cnn-dailymail", cnn_dm)
 
-        flatten_folder(CNN_DM)
+        flatten_folder(cnn_dm)
 
-    download_NS()
-    download_CNN_DM()
+    download_ns()
+    download_cnn_dm()
 
 
 # ----- main ---------------------

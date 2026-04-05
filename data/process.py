@@ -33,13 +33,13 @@ def requirements():
 # --- news summary
 def process_summary_dataset():
     # dataset 1: news summary
-    def process_NS():
-        PROCESSED_NS = os.path.join(PROCESSED_SUMMARY, "NS")
-        os.makedirs(PROCESSED_NS, exist_ok=True)
+    def process_ns():
+        processed_ns = os.path.join(PROCESSED_SUMMARY, "NS")
+        os.makedirs(processed_ns, exist_ok=True)
 
-        RAW_NS = os.path.join(RAW_SUMMARY, "NS")
-        src = os.path.join(RAW_NS, "full.csv")
-        dst = os.path.join(PROCESSED_NS, "full.csv")
+        raw_ns = os.path.join(RAW_SUMMARY, "NS")
+        src = os.path.join(raw_ns, "full.csv")
+        dst = os.path.join(processed_ns, "full.csv")
 
         df = pd.read_csv(src, encoding="latin-1")
 
@@ -68,14 +68,14 @@ def process_summary_dataset():
         df.to_csv(dst, index=False)
 
     # dataset 2: CNN-DailyMail News Text Summarisation
-    def process_CNN_DM():
-        PROCESSED_CNN_DM = os.path.join(PROCESSED_SUMMARY, "CNN_DM")
-        os.makedirs(PROCESSED_CNN_DM, exist_ok=True)
+    def process_cnn_dm():
+        processed_cnn_dm = os.path.join(PROCESSED_SUMMARY, "CNN_DM")
+        os.makedirs(processed_cnn_dm, exist_ok=True)
 
-        RAW_CNN_DM = os.path.join(RAW_SUMMARY, "CNN_DM")
+        raw_cnn_dm = os.path.join(RAW_SUMMARY, "CNN_DM")
         for split in ["test", "train", "validation"]:
-            src = os.path.join(RAW_CNN_DM, f"{split}.csv")
-            dst = os.path.join(PROCESSED_CNN_DM, f"{split}.csv")
+            src = os.path.join(raw_cnn_dm, f"{split}.csv")
+            dst = os.path.join(processed_cnn_dm, f"{split}.csv")
 
             df = pd.read_csv(src)
             df = df.rename(
@@ -91,9 +91,9 @@ def process_summary_dataset():
 
             # save processed data
             df.to_csv(dst, index=False)
-    
-    process_NS()
-    process_CNN_DM()
+
+    process_ns()
+    process_cnn_dm()
 
 
 # ----- main ---------------------
