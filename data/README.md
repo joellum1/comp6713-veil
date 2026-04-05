@@ -31,17 +31,15 @@ data
 
 **Source:** *(link)*
 
----
-
 ## News Summary
 
-### 1. News Summary
-
-**Source:** https://www.kaggle.com/datasets/sunnysai12345/news-summary
-
-### 2. CNN-DailyMail News Text Summarisation
+### 1. CNN-DailyMail News Text Summarisation
 
 **Source:** https://www.kaggle.com/datasets/gowrishankarp/newspaper-text-summarization-cnn-dailymail
+
+### 2. News Summary
+
+**Source:** https://www.kaggle.com/datasets/sunnysai12345/news-summary
 
 ---
 
