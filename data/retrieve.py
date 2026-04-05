@@ -58,23 +58,24 @@ def kaggle(dataset, dest):
 
 
 def ensure_dirs():
-    sentiment_datasets = os.path.join(BASE, "sentiment_datasets")
-    raw_dir = os.path.join(sentiment_datasets, "raw")
-    processed_dir = os.path.join(sentiment_datasets, "processed")
+    raw_dir = os.path.join(BASE, "raw")
+    raw_dir_sentiment = os.path.join(raw_dir, "sentiment")
+    processed_dir = os.path.join(BASE, "processed")
+    processed_dir_sentiment = os.path.join(processed_dir, "sentiment")
 
-    fpb_dir = os.path.join(raw_dir, "FPB")
-    fmb_dir = os.path.join(raw_dir, "FMB")
+    fpb_dir = os.path.join(raw_dir_sentiment, "FPB")
+    fmb_dir = os.path.join(raw_dir_sentiment, "FMB")
+
 
     os.makedirs(fpb_dir, exist_ok=True)
     os.makedirs(fmb_dir, exist_ok=True)
-    os.makedirs(processed_dir, exist_ok=True)
+    os.makedirs(processed_dir_sentiment, exist_ok=True)
 
     return {
-        "sentiment_datasets": sentiment_datasets,
-        "raw": raw_dir,
-        "processed": processed_dir,
-        "fpb": fpb_dir,
-        "fmb": fmb_dir,
+        "fpb_raw": fpb_dir,
+        "fmb_raw": fmb_dir,
+        "processed_sentiment": processed_dir_sentiment,
+        "raw_sentiment": raw_dir_sentiment,
     }
 
 
@@ -102,9 +103,6 @@ def normalize_sentiment(value):
         "positive": "positive",
         "negative": "negative",
         "neutral": "neutral",
-        "pos": "positive",
-        "neg": "negative",
-        "neu": "neutral",
         "1": "positive",
         "0": "neutral",
         "-1": "negative",
@@ -148,8 +146,8 @@ def standardize_fmb(output_path):
     df = ds["train"].to_pandas()
 
     # Expected useful columns:
-    # Title -> headline text
-    # Global Sentiment -> aggregate label (-1, 0, 1)
+    # Title -> headline
+    # Global Sentiment -> label (-1, 0, 1)
     if "Title" not in df.columns:
         raise ValueError("Expected column 'Title' not found in FMB dataset.")
     if "Global Sentiment" not in df.columns:
@@ -187,10 +185,10 @@ def get_sentiment_dataset():
     paths = ensure_dirs()
 
     # ---------- FPB / Kaggle ----------
-    kaggle("ankurzing/sentiment-analysis-for-financial-news", paths["fpb"])
+    kaggle("ankurzing/sentiment-analysis-for-financial-news", paths["fpb_raw"])
 
-    fpb_src = os.path.join(paths["fpb"], "all-data.csv")
-    fpb_raw = os.path.join(paths["fpb"], "raw.csv")
+    fpb_src = os.path.join(paths["fpb_raw"], "all-data.csv")
+    fpb_raw = os.path.join(paths["fpb_raw"], "raw.csv")
     if os.path.exists(fpb_src):
         os.replace(fpb_src, fpb_raw)
     elif not os.path.exists(fpb_raw):
@@ -198,14 +196,14 @@ def get_sentiment_dataset():
 
     # ---------- FMB / HuggingFace ----------
     # Save raw copy too, if you still want it
-    fmb_raw = os.path.join(paths["fmb"], "raw.csv")
+    fmb_raw = os.path.join(paths["fmb_raw"], "raw.csv")
     fmb_ds = datasets.load_dataset("baptle/financial_headlines_market_based")
     fmb_ds["train"].to_csv(fmb_raw, index=False)
 
     # ---------- Standardize ----------
-    fpb_std_path = os.path.join(paths["processed"], "fpb_standardized.csv")
-    fmb_std_path = os.path.join(paths["processed"], "fmb_standardized.csv")
-    stitched_path = os.path.join(paths["processed"], "stitched_sentiment.csv")
+    fpb_std_path = os.path.join(paths["processed_sentiment"], "fpb_standardized.csv")
+    fmb_std_path = os.path.join(paths["processed_sentiment"], "fmb_standardized.csv")
+    stitched_path = os.path.join(paths["processed_sentiment"], "stitched_sentiment.csv")
 
     fpb_df = standardize_fpb(fpb_raw, fpb_std_path)
     fmb_df = standardize_fmb(fmb_std_path)
