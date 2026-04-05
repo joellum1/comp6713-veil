@@ -8,7 +8,7 @@ venv/
 
 # ignore data - download independently
 data/raw
-data/process
+data/processed
 
 # jupyter checkpoints
 .ipynb_checkpoints/
