@@ -8,6 +8,7 @@ Run this script from the project root directory:
 import os
 import subprocess
 import sys
+import shutil
 
 # ----- file paths ---------------
 
@@ -39,6 +40,23 @@ def kaggle(dataset, dest):
     )
     print(f"[Kaggle] Done: {dataset}")
 
+def flatten_folder(base):
+    # search for subdirectories in the base directory
+    subdirs = [d for d in os.listdir(base) if os.path.isdir(os.path.join(base, d))]
+
+    for sd in subdirs:
+        nested = os.path.join(base, sd)
+
+        # move contents in subdirectory to base directory
+        for item in os.listdir(nested):
+            src = os.path.join(nested, item)
+            dst = os.path.join(base, item)
+
+            shutil.move(src, dst)
+        
+        # remove subdirectory
+        os.rmdir(nested)
+
 
 # --- news sentiment
 # dataset 1: financial phrasebank
@@ -48,9 +66,11 @@ def download_fpb():
 
     kaggle("ankurzing/sentiment-analysis-for-financial-news", FPB)
 
+    flatten_folder(FPB)
+
     # standardised name
     src = os.path.join(FPB, "all-data.csv")
-    dst = os.path.join(FPB, "raw.csv")
+    dst = os.path.join(FPB, "full.csv")
     if os.path.exists(src):
         os.rename(src, dst)
 
@@ -65,7 +85,7 @@ def download_ns():
 
     # standardised name
     src = os.path.join(NS, "news_summary.csv")
-    dst = os.path.join(NS, "raw.csv")
+    dst = os.path.join(NS, "full.csv")
     if os.path.exists(src):
         os.rename(src, dst)
 
@@ -75,6 +95,8 @@ def download_CNN_DM():
     os.makedirs(CNN_DM, exist_ok=True)
 
     kaggle("gowrishankarp/newspaper-text-summarization-cnn-dailymail", CNN_DM)
+
+    flatten_folder(CNN_DM)
 
 
 # ----- main ---------------------
