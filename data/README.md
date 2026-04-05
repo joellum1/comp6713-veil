@@ -1,10 +1,10 @@
 # Data
 
-All data files are ignored and must be downloaded (through scripts provided).
+All data files are ignored and must be downloaded (scripts provided).
 
 ---
 
-# Folder Structure
+## Folder Structure
 
 ```text
 data
@@ -21,15 +21,25 @@ data
 
 ---
 
-## 1. Financial PhraseBank
+## News Sentiment
+
+### 1. Financial PhraseBank
 
 **Source:** https://www.kaggle.com/datasets/ankurzing/sentiment-analysis-for-financial-news
-
----
 
 ## 2. *(Second dataset TBD)*
 
 **Source:** *(link)*
+
+## News Summary
+
+### 1. CNN-DailyMail News Text Summarisation
+
+**Source:** https://www.kaggle.com/datasets/gowrishankarp/newspaper-text-summarization-cnn-dailymail
+
+### 2. News Summary
+
+**Source:** https://www.kaggle.com/datasets/sunnysai12345/news-summary
 
 ---
 

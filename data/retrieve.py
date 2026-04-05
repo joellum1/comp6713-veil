@@ -8,6 +8,7 @@ Run this script from the project root directory:
 import os
 import subprocess
 import sys
+import shutil
 
 # ----- file paths ---------------
 
@@ -18,7 +19,7 @@ os.makedirs(RAW, exist_ok=True)
 
 SENTIMENT = os.path.join(RAW, "sentiment")
 os.makedirs(SENTIMENT, exist_ok=True)
-SUMMARY = os.path.join(RAW, "sentiment")
+SUMMARY = os.path.join(RAW, "summary")
 os.makedirs(SUMMARY, exist_ok=True)
 
 
@@ -39,27 +40,80 @@ def kaggle(dataset, dest):
     )
     print(f"[Kaggle] Done: {dataset}")
 
+def flatten_folder(base):
+    # search for subdirectories in the base directory
+    subdirs = [d for d in os.listdir(base) if os.path.isdir(os.path.join(base, d))]
 
+    for sd in subdirs:
+        nested = os.path.join(base, sd)
+
+        # move contents in subdirectory to base directory
+        for item in os.listdir(nested):
+            src = os.path.join(nested, item)
+            dst = os.path.join(base, item)
+
+            shutil.move(src, dst)
+
+        # remove subdirectory
+        os.rmdir(nested)
+
+
+# --- news sentiment
 # dataset 1: financial phrasebank
 def download_fpb():
-    FPB = os.path.join(SENTIMENT, "FPB")
-    os.makedirs(FPB, exist_ok=True)
+    fpb = os.path.join(SENTIMENT, "FPB")
+    os.makedirs(fpb, exist_ok=True)
 
-    kaggle("ankurzing/sentiment-analysis-for-financial-news", FPB)
+    kaggle("ankurzing/sentiment-analysis-for-financial-news", fpb)
+
+    flatten_folder(fpb)
 
     # standardised name
-    src = os.path.join(FPB, "all-data.csv")
-    dst = os.path.join(FPB, "raw.csv")
+    src = os.path.join(fpb, "all-data.csv")
+    dst = os.path.join(fpb, "full.csv")
     if os.path.exists(src):
         os.rename(src, dst)
+
+
+# --- news summary
+def get_summary_dataset():
+    # dataset 1: news summary
+    def download_ns():
+        ns = os.path.join(SUMMARY, "NS")
+        os.makedirs(ns, exist_ok=True)
+
+        kaggle("sunnysai12345/news-summary", ns)
+
+        # standardised name
+        src = os.path.join(ns, "news_summary.csv")
+        dst = os.path.join(ns, "full.csv")
+        if os.path.exists(src):
+            os.rename(src, dst)
+
+    # dataset 2: CNN-DailyMail News Text Summarisation
+    def download_cnn_dm():
+        cnn_dm = os.path.join(SUMMARY, "CNN_DM")
+        os.makedirs(cnn_dm, exist_ok=True)
+
+        kaggle("gowrishankarp/newspaper-text-summarization-cnn-dailymail", cnn_dm)
+
+        flatten_folder(cnn_dm)
+
+    download_ns()
+    download_cnn_dm()
 
 
 # ----- main ---------------------
 
 if __name__ == "__main__":
-    print("Downloading datasets...\n")
+    print("Downloading datasets...")
 
     requirements()
+
+    print("\n\nRetrieving news sentiment datasets...")
     download_fpb()
+
+    print("\n\nRetrieving news summary datasets...")
+    get_summary_dataset()
 
     print("\n\nDatasets successfully downloaded.")
