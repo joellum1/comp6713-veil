@@ -76,27 +76,31 @@ def download_fpb():
 
 
 # --- news summary
-# dataset 1: news summary
-def download_ns():
-    NS = os.path.join(SUMMARY, "NS")
-    os.makedirs(NS, exist_ok=True)
+def get_summary_dataset():
+    # dataset 1: news summary
+    def download_NS():
+        NS = os.path.join(SUMMARY, "NS")
+        os.makedirs(NS, exist_ok=True)
 
-    kaggle("sunnysai12345/news-summary", NS)
+        kaggle("sunnysai12345/news-summary", NS)
 
-    # standardised name
-    src = os.path.join(NS, "news_summary.csv")
-    dst = os.path.join(NS, "full.csv")
-    if os.path.exists(src):
-        os.rename(src, dst)
+        # standardised name
+        src = os.path.join(NS, "news_summary.csv")
+        dst = os.path.join(NS, "full.csv")
+        if os.path.exists(src):
+            os.rename(src, dst)
 
-# dataset 2: CNN-DailyMail News Text Summarisation
-def download_CNN_DM():
-    CNN_DM = os.path.join(SUMMARY, "CNN_DM")
-    os.makedirs(CNN_DM, exist_ok=True)
+    # dataset 2: CNN-DailyMail News Text Summarisation
+    def download_CNN_DM():
+        CNN_DM = os.path.join(SUMMARY, "CNN_DM")
+        os.makedirs(CNN_DM, exist_ok=True)
 
-    kaggle("gowrishankarp/newspaper-text-summarization-cnn-dailymail", CNN_DM)
+        kaggle("gowrishankarp/newspaper-text-summarization-cnn-dailymail", CNN_DM)
 
-    flatten_folder(CNN_DM)
+        flatten_folder(CNN_DM)
+
+    download_NS()
+    download_CNN_DM()
 
 
 # ----- main ---------------------
@@ -110,7 +114,6 @@ if __name__ == "__main__":
     download_fpb()
 
     print("\n\nRetrieving news summary datasets...")
-    download_ns()
-    download_CNN_DM()
+    get_summary_dataset()
 
     print("\n\nDatasets successfully downloaded.")
