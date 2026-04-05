@@ -156,4 +156,5 @@ def standardize_sentiment():
     print(f"\nCombined shape: {combined_df.shape}")
 
 if __name__ == "__main__":
+    print("Standardizing datasets...")
     standardize_sentiment()

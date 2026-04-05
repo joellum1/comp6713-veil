@@ -96,7 +96,7 @@ def get_sentiment_dataset():
 
 
 if __name__ == "__main__":
-    print("Downloading and standardizing datasets...\n")
+    print("Downloading datasets...\n")
     requirements()
     get_sentiment_dataset()
     print("\nDatasets successfully downloaded")
