@@ -31,65 +31,69 @@ def requirements():
 
 
 # --- news summary
-# dataset 1: news summary
-def process_NS():
-    PROCESSED_NS = os.path.join(PROCESSED_SUMMARY, "NS")
-    os.makedirs(PROCESSED_NS, exist_ok=True)
+def process_summary_dataset():
+    # dataset 1: news summary
+    def process_NS():
+        PROCESSED_NS = os.path.join(PROCESSED_SUMMARY, "NS")
+        os.makedirs(PROCESSED_NS, exist_ok=True)
 
-    RAW_NS = os.path.join(RAW_SUMMARY, "NS")
-    src = os.path.join(RAW_NS, "full.csv")
-    dst = os.path.join(PROCESSED_NS, "full.csv")
+        RAW_NS = os.path.join(RAW_SUMMARY, "NS")
+        src = os.path.join(RAW_NS, "full.csv")
+        dst = os.path.join(PROCESSED_NS, "full.csv")
 
-    df = pd.read_csv(src, encoding="latin-1")
+        df = pd.read_csv(src, encoding="latin-1")
 
-    df = df.rename(
-        columns={
-            "ctext": "article",
-            "text": "summary"
-        }
-    )
-
-    df = df[["article", "summary"]]
-
-    # cleaning
-    def clean(text):
-        return (
-            str(text)
-            .replace("\n", " ")
-            .replace("\r", " ")
-            .replace("?", "")
-            .strip()
-        )
-    df["article"] = df["article"].apply(clean)
-    df["summary"] = df["summary"].apply(clean)
-
-    # save processed data
-    df.to_csv(dst, index=False)
-
-# dataset 2: CNN-DailyMail News Text Summarisation
-def process_CNN_DM():
-    PROCESSED_CNN_DM = os.path.join(PROCESSED_SUMMARY, "CNN_DM")
-    os.makedirs(PROCESSED_CNN_DM, exist_ok=True)
-
-    RAW_CNN_DM = os.path.join(RAW_SUMMARY, "CNN_DM")
-    for split in ["test", "train", "validation"]:
-        src = os.path.join(RAW_CNN_DM, f"{split}.csv")
-        dst = os.path.join(PROCESSED_CNN_DM, f"{split}.csv")
-
-        df = pd.read_csv(src)
         df = df.rename(
             columns={
-                "highlights": "summary"
+                "ctext": "article",
+                "text": "summary"
             }
         )
+
         df = df[["article", "summary"]]
 
         # cleaning
-        df["article"] = df["article"].str.strip()
-        df["summary"] = df["summary"].str.strip()
+        def clean(text):
+            return (
+                str(text)
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .replace("?", "")
+                .strip()
+            )
+        df["article"] = df["article"].apply(clean)
+        df["summary"] = df["summary"].apply(clean)
 
         # save processed data
         df.to_csv(dst, index=False)
+
+    # dataset 2: CNN-DailyMail News Text Summarisation
+    def process_CNN_DM():
+        PROCESSED_CNN_DM = os.path.join(PROCESSED_SUMMARY, "CNN_DM")
+        os.makedirs(PROCESSED_CNN_DM, exist_ok=True)
+
+        RAW_CNN_DM = os.path.join(RAW_SUMMARY, "CNN_DM")
+        for split in ["test", "train", "validation"]:
+            src = os.path.join(RAW_CNN_DM, f"{split}.csv")
+            dst = os.path.join(PROCESSED_CNN_DM, f"{split}.csv")
+
+            df = pd.read_csv(src)
+            df = df.rename(
+                columns={
+                    "highlights": "summary"
+                }
+            )
+            df = df[["article", "summary"]]
+
+            # cleaning
+            df["article"] = df["article"].str.strip()
+            df["summary"] = df["summary"].str.strip()
+
+            # save processed data
+            df.to_csv(dst, index=False)
+    
+    process_NS()
+    process_CNN_DM()
 
 
 # ----- main ---------------------
@@ -102,7 +106,6 @@ if __name__ == "__main__":
     print("\n\nProcessing news sentiment datasets...")
 
     print("\n\nProcessing news summary datasets...")
-    process_NS()
-    process_CNN_DM()
+    process_summary_dataset()
 
     print("\n\nDatasets processed successfully.")
