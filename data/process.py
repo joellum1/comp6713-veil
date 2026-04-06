@@ -6,40 +6,184 @@ Run this script from the project root directory:
 """
 
 import os
+import subprocess
+import sys
+import datasets
 import pandas as pd
+import re
+from IPython.core import ultratb
+sys.excepthook = ultratb.FormattedTB(color_scheme='Linux', call_pdb=False)
 
 # ----- file paths ---------------
-
 BASE = os.path.join(os.path.dirname(__file__))
 
-RAW = os.path.join(BASE, "raw")
-RAW_SENTIMENT = os.path.join(RAW, "sentiment")
-RAW_SUMMARY = os.path.join(RAW, "summary")
+def ensure_dirs():
+    # sentiment stuff
+    sentiment_raw_dir = os.path.join(BASE, "raw", "sentiment")
+    # get all the raw files under sentiment directory
+    sentiment_raw_csv_files = []
+    if os.path.exists(sentiment_raw_dir):
+        for dirs in os.listdir(sentiment_raw_dir):
+            directory = os.path.join(sentiment_raw_dir, dirs)
+            if os.path.isdir(directory):
+                for file in os.listdir(directory):
+                    if file == "raw.csv": sentiment_raw_csv_files.append(os.path.join(directory, file))
 
-PROCESSED = os.path.join(BASE, "processed")
-os.makedirs(PROCESSED, exist_ok=True)
-PROCESSED_SENTIMENT = os.path.join(PROCESSED, "sentiment")
-os.makedirs(PROCESSED_SENTIMENT, exist_ok=True)
-PROCESSED_SUMMARY = os.path.join(PROCESSED, "summary")
-os.makedirs(PROCESSED_SUMMARY, exist_ok=True)
+    processed_dir_sentiment = os.path.join(BASE, "processed", "sentiment")
+    os.makedirs(processed_dir_sentiment, exist_ok=True)
+
+    # summary stuff
+    summary_raw_dir = os.path.join(BASE, "raw", "summary")
+    processed_dir_summary = os.path.join(BASE, "processed", "summary")
+    os.makedirs(processed_dir_summary, exist_ok=True)
+
+    return {
+        "sentiment_raw_files": sentiment_raw_csv_files,
+        "processed_sentiment": processed_dir_sentiment,
+        "summary_raw_dir": summary_raw_dir,
+        "processed_summary": processed_dir_summary,
+    }
+
+# ----- sentiment helpers ------------------
+def normalize_sentiment(value):
+    """
+    Normalize sentiment labels into:
+        positive / negative / neutral
+    Supports strings and numeric values.
+    """
+    if pd.isna(value):
+        return None
+
+    # numeric case
+    if isinstance(value, (int, float)):
+        if value > 0:
+            return "positive"
+        if value < 0:
+            return "negative"
+        return "neutral"
+
+    s = str(value).strip().lower()
+
+    mapping = {
+        "positive": "positive",
+        "negative": "negative",
+        "neutral": "neutral",
+        "1": "positive",
+        "0": "neutral",
+        "-1": "negative",
+    }
+
+    return mapping.get(s, None)
 
 
-# ----- helpers ------------------
+def standardize_fpb(fpb_raw_path, output_path):
+    """
+    Standardize Financial PhraseBank / Kaggle dataset into:
+        data, datatype, sentiment
+    """
+    # The Kaggle CSV is typically headerless with:
+    # sentiment, headline
+    df = pd.read_csv(
+        fpb_raw_path,
+        header=None,
+        names=["sentiment", "data"],
+        encoding="latin1"
+    )
 
-def requirements():
-    pass
+    df["datatype"] = "sentence"
+    df["sentiment"] = df["sentiment"].apply(normalize_sentiment)
+
+    df = df[["data", "datatype", "sentiment"]].copy()
+    df = df.dropna(subset=["data", "sentiment"])
+    df["data"] = df["data"].astype(str).str.strip()
+    df = df[df["data"] != ""]
+
+    df.to_csv(output_path, index=False)
+    return df
 
 
-# --- news summary
-def process_summary_dataset():
+def standardize_fmb(fmb_raw_path, output_path):
+    """
+    Standardize baptle/financial_headlines_market_based into:
+        data, datatype, sentiment
+    """
+    df = pd.read_csv(fmb_raw_path, encoding="latin1")
+
+    # Expected useful columns:
+    # Title -> headline
+    # Global Sentiment -> label (-1, 0, 1)
+    if "Title" not in df.columns:
+        raise ValueError("Expected column 'Title' not found in FMB dataset.")
+    if "Global Sentiment" not in df.columns:
+        raise ValueError("Expected column 'Global Sentiment' not found in FMB dataset.")
+
+    df = df.rename(columns={
+        "Title": "data",
+        "Global Sentiment": "sentiment"
+    })
+
+    df["datatype"] = "headline"
+    df["sentiment"] = df["sentiment"].apply(normalize_sentiment)
+
+    df = df[["data", "datatype", "sentiment"]].copy()
+    df = df.dropna(subset=["data", "sentiment"])
+    df["data"] = df["data"].astype(str).str.strip()
+    df = df[df["data"] != ""]
+
+    df.to_csv(output_path, index=False)
+    return df
+
+
+def stitch_datasets(dfs, output_path):
+    combined = pd.concat(dfs, ignore_index=True)
+    # optional deduplication
+    combined = combined.drop_duplicates(subset=["data", "datatype", "sentiment"])
+    combined.to_csv(output_path, index=False)
+    return combined
+
+
+def standardize_sentiment(paths):
+    # creating file names for the standardized file names
+    fpb_std_path = os.path.join(paths["processed_sentiment"], "fpb_standardized.csv")
+    fmb_std_path = os.path.join(paths["processed_sentiment"], "fmb_standardized.csv")
+    stitched_path = os.path.join(paths["processed_sentiment"], "stitched_sentiment.csv")
+
+    # standardizing all the raw files
+    standardized_dfs = []
+    print("Raw sentiment files:", paths["sentiment_raw_files"])
+    for sentiment_raw_file_path in paths["sentiment_raw_files"]:
+        if re.search("FPB", sentiment_raw_file_path):
+            fpb_df = standardize_fpb(sentiment_raw_file_path, fpb_std_path)
+            standardized_dfs.append(fpb_df)
+        elif re.search("FMB", sentiment_raw_file_path):
+            fmb_df = standardize_fmb(sentiment_raw_file_path, fmb_std_path)
+            standardized_dfs.append(fmb_df)
+    
+    if standardized_dfs:
+        combined_df = stitch_datasets(standardized_dfs, stitched_path)
+        print("\nSaved files:")
+        print(f" - {fpb_std_path}")
+        print(f" - {fmb_std_path}")
+        print(f" - {stitched_path}")
+        print(f"\nCombined shape: {combined_df.shape} with columns [data, datatype (sentence | headline), sentiment (positive | negative | neutral)]")
+    else:
+        print("No sentiment data found to process.")
+
+
+
+def process_summary_dataset(paths):
     # dataset 1: news summary
     def process_ns():
-        processed_ns = os.path.join(PROCESSED_SUMMARY, "NS")
+        processed_ns = os.path.join(paths["processed_summary"], "NS")
         os.makedirs(processed_ns, exist_ok=True)
 
-        raw_ns = os.path.join(RAW_SUMMARY, "NS")
+        raw_ns = os.path.join(paths["summary_raw_dir"], "NS")
         src = os.path.join(raw_ns, "full.csv")
         dst = os.path.join(processed_ns, "full.csv")
+
+        if not os.path.exists(src):
+            print(f"File not found: {src}")
+            return
 
         df = pd.read_csv(src, encoding="latin-1")
 
@@ -66,16 +210,21 @@ def process_summary_dataset():
 
         # save processed data
         df.to_csv(dst, index=False)
+        print(f"Saved processed NS to {dst}")
 
     # dataset 2: CNN-DailyMail News Text Summarisation
     def process_cnn_dm():
-        processed_cnn_dm = os.path.join(PROCESSED_SUMMARY, "CNN_DM")
+        processed_cnn_dm = os.path.join(paths["processed_summary"], "CNN_DM")
         os.makedirs(processed_cnn_dm, exist_ok=True)
 
-        raw_cnn_dm = os.path.join(RAW_SUMMARY, "CNN_DM")
+        raw_cnn_dm = os.path.join(paths["summary_raw_dir"], "CNN_DM")
         for split in ["test", "train", "validation"]:
             src = os.path.join(raw_cnn_dm, f"{split}.csv")
             dst = os.path.join(processed_cnn_dm, f"{split}.csv")
+
+            if not os.path.exists(src):
+                print(f"File not found: {src}")
+                continue
 
             df = pd.read_csv(src)
             df = df.rename(
@@ -91,21 +240,21 @@ def process_summary_dataset():
 
             # save processed data
             df.to_csv(dst, index=False)
+            print(f"Saved processed CNN_DM {split} to {dst}")
 
     process_ns()
     process_cnn_dm()
 
-
-# ----- main ---------------------
-
+# main
 if __name__ == "__main__":
     print("Processing datasets...")
 
-    requirements()
+    paths = ensure_dirs()
 
-    print("\n\nProcessing news sentiment datasets...")
+    print("\n\nStandardizing sentiment datasets...")
+    standardize_sentiment(paths)
 
     print("\n\nProcessing news summary datasets...")
-    process_summary_dataset()
+    process_summary_dataset(paths)
 
     print("\n\nDatasets processed successfully.")
