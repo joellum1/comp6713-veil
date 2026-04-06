@@ -7,8 +7,11 @@ __pycache__/
 venv/
 
 # ignore data - download independently
-data/raw/
-data/processed/
+data/raw
+data/processed
 
 # jupyter checkpoints
 .ipynb_checkpoints/
+
+# misc
+.DS_Store

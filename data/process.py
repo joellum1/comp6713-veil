@@ -18,24 +18,33 @@ sys.excepthook = ultratb.FormattedTB(color_scheme='Linux', call_pdb=False)
 BASE = os.path.join(os.path.dirname(__file__))
 
 def ensure_dirs():
+    # sentiment stuff
     sentiment_raw_dir = os.path.join(BASE, "raw", "sentiment")
     # get all the raw files under sentiment directory
     sentiment_raw_csv_files = []
-    for dirs in os.listdir(sentiment_raw_dir):
-        directory = os.path.join(sentiment_raw_dir, dirs)
-        for file in os.listdir(directory):
-            if file == "raw.csv": sentiment_raw_csv_files.append(os.path.join(directory, file))
+    if os.path.exists(sentiment_raw_dir):
+        for dirs in os.listdir(sentiment_raw_dir):
+            directory = os.path.join(sentiment_raw_dir, dirs)
+            if os.path.isdir(directory):
+                for file in os.listdir(directory):
+                    if file == "raw.csv": sentiment_raw_csv_files.append(os.path.join(directory, file))
 
     processed_dir_sentiment = os.path.join(BASE, "processed", "sentiment")
     os.makedirs(processed_dir_sentiment, exist_ok=True)
 
-    print("Raw sentiment files:", sentiment_raw_csv_files)
+    # summary stuff
+    summary_raw_dir = os.path.join(BASE, "raw", "summary")
+    processed_dir_summary = os.path.join(BASE, "processed", "summary")
+    os.makedirs(processed_dir_summary, exist_ok=True)
+
     return {
         "sentiment_raw_files": sentiment_raw_csv_files,
         "processed_sentiment": processed_dir_sentiment,
+        "summary_raw_dir": summary_raw_dir,
+        "processed_summary": processed_dir_summary,
     }
 
-# ----- normalization helpers ------------------
+# ----- sentiment helpers ------------------
 def normalize_sentiment(value):
     """
     Normalize sentiment labels into:
@@ -124,6 +133,7 @@ def standardize_fmb(fmb_raw_path, output_path):
     df.to_csv(output_path, index=False)
     return df
 
+
 def stitch_datasets(dfs, output_path):
     combined = pd.concat(dfs, ignore_index=True)
     # optional deduplication
@@ -131,8 +141,8 @@ def stitch_datasets(dfs, output_path):
     combined.to_csv(output_path, index=False)
     return combined
 
-def standardize_sentiment():
-    paths = ensure_dirs()
+
+def standardize_sentiment(paths):
     # creating file names for the standardized file names
     fpb_std_path = os.path.join(paths["processed_sentiment"], "fpb_standardized.csv")
     fmb_std_path = os.path.join(paths["processed_sentiment"], "fmb_standardized.csv")
@@ -140,6 +150,7 @@ def standardize_sentiment():
 
     # standardizing all the raw files
     standardized_dfs = []
+    print("Raw sentiment files:", paths["sentiment_raw_files"])
     for sentiment_raw_file_path in paths["sentiment_raw_files"]:
         if re.search("FPB", sentiment_raw_file_path):
             fpb_df = standardize_fpb(sentiment_raw_file_path, fpb_std_path)
@@ -147,14 +158,103 @@ def standardize_sentiment():
         elif re.search("FMB", sentiment_raw_file_path):
             fmb_df = standardize_fmb(sentiment_raw_file_path, fmb_std_path)
             standardized_dfs.append(fmb_df)
-    combined_df = stitch_datasets(standardized_dfs, stitched_path)
+    
+    if standardized_dfs:
+        combined_df = stitch_datasets(standardized_dfs, stitched_path)
+        print("\nSaved files:")
+        print(f" - {fpb_std_path}")
+        print(f" - {fmb_std_path}")
+        print(f" - {stitched_path}")
+        print(f"\nCombined shape: {combined_df.shape} with columns [data, datatype (sentence | headline), sentiment (positive | negative | neutral)]")
+    else:
+        print("No sentiment data found to process.")
 
-    print("\nSaved files:")
-    print(f" - {fpb_std_path}")
-    print(f" - {fmb_std_path}")
-    print(f" - {stitched_path}")
-    print(f"\nCombined shape: {combined_df.shape}")
 
+
+def process_summary_dataset(paths):
+    # dataset 1: news summary
+    def process_ns():
+        processed_ns = os.path.join(paths["processed_summary"], "NS")
+        os.makedirs(processed_ns, exist_ok=True)
+
+        raw_ns = os.path.join(paths["summary_raw_dir"], "NS")
+        src = os.path.join(raw_ns, "full.csv")
+        dst = os.path.join(processed_ns, "full.csv")
+
+        if not os.path.exists(src):
+            print(f"File not found: {src}")
+            return
+
+        df = pd.read_csv(src, encoding="latin-1")
+
+        df = df.rename(
+            columns={
+                "ctext": "article",
+                "text": "summary"
+            }
+        )
+
+        df = df[["article", "summary"]]
+
+        # cleaning
+        def clean(text):
+            return (
+                str(text)
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .replace("?", "")
+                .strip()
+            )
+        df["article"] = df["article"].apply(clean)
+        df["summary"] = df["summary"].apply(clean)
+
+        # save processed data
+        df.to_csv(dst, index=False)
+        print(f"Saved processed NS to {dst}")
+
+    # dataset 2: CNN-DailyMail News Text Summarisation
+    def process_cnn_dm():
+        processed_cnn_dm = os.path.join(paths["processed_summary"], "CNN_DM")
+        os.makedirs(processed_cnn_dm, exist_ok=True)
+
+        raw_cnn_dm = os.path.join(paths["summary_raw_dir"], "CNN_DM")
+        for split in ["test", "train", "validation"]:
+            src = os.path.join(raw_cnn_dm, f"{split}.csv")
+            dst = os.path.join(processed_cnn_dm, f"{split}.csv")
+
+            if not os.path.exists(src):
+                print(f"File not found: {src}")
+                continue
+
+            df = pd.read_csv(src)
+            df = df.rename(
+                columns={
+                    "highlights": "summary"
+                }
+            )
+            df = df[["article", "summary"]]
+
+            # cleaning
+            df["article"] = df["article"].str.strip()
+            df["summary"] = df["summary"].str.strip()
+
+            # save processed data
+            df.to_csv(dst, index=False)
+            print(f"Saved processed CNN_DM {split} to {dst}")
+
+    process_ns()
+    process_cnn_dm()
+
+# main
 if __name__ == "__main__":
-    print("Standardizing datasets...")
-    standardize_sentiment()
+    print("Processing datasets...")
+
+    paths = ensure_dirs()
+
+    print("\n\nStandardizing sentiment datasets...")
+    standardize_sentiment(paths)
+
+    print("\n\nProcessing news summary datasets...")
+    process_summary_dataset(paths)
+
+    print("\n\nDatasets processed successfully.")
