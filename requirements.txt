@@ -6,3 +6,4 @@ notebook
 kaggle
 datasets
 pylint
+langchain
