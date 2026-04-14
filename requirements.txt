@@ -7,3 +7,5 @@ kaggle
 datasets
 pylint
 langchain
+torch
+transformers

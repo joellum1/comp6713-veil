@@ -13,7 +13,7 @@ import datasets
 import pandas as pd
 
 from IPython.core import ultratb
-sys.excepthook = ultratb.FormattedTB(color_scheme='Linux', call_pdb=False)
+sys.excepthook = ultratb.FormattedTB(call_pdb=False)
 
 
 # ----- helpers ------------------
