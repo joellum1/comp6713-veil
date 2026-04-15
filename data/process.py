@@ -12,7 +12,7 @@ import datasets
 import pandas as pd
 import re
 from IPython.core import ultratb
-sys.excepthook = ultratb.FormattedTB(color_scheme='Linux', call_pdb=False)
+sys.excepthook = ultratb.FormattedTB(call_pdb=False)
 
 # ----- file paths ---------------
 BASE = os.path.join(os.path.dirname(__file__))

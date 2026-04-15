@@ -14,4 +14,7 @@ data/processed
 .ipynb_checkpoints/
 
 # misc
-.DS_Store
+.DS_Storeresults/
+best_finbert_model/
+notebooks/my_finbert_model/
+notebooks/results/
