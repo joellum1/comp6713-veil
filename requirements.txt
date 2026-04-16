@@ -6,10 +6,19 @@ notebook
 kaggle
 pylint
 
-# summarisation model
+# models
 transformers
 torch
-evaluate
+datasets
 accelerate>=1.1.0
+
+# sentiment model
+
+
+# summarisation model
+evaluate
 nltk
 rouge_score
+
+# langchain
+langchain
