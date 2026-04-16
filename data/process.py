@@ -7,6 +7,8 @@ Run this script from the project root directory:
 
 import os
 import pandas as pd
+import re
+import csv
 
 # ----- file paths ---------------
 
@@ -77,7 +79,11 @@ def process_summary_dataset():
             src = os.path.join(raw_cnn_dm, f"{split}.csv")
             dst = os.path.join(processed_cnn_dm, f"{split}.csv")
 
-            df = pd.read_csv(src)
+            df = pd.read_csv(
+                src,
+                quotechar='"',
+                on_bad_lines='skip'
+            )
             df = df.rename(
                 columns={
                     "highlights": "summary"
@@ -87,10 +93,16 @@ def process_summary_dataset():
 
             # cleaning
             df["article"] = df["article"].str.strip()
-            df["summary"] = df["summary"].str.strip()
+            df["summary"] = (
+                df["summary"]
+                .astype(str)
+                .str.replace(r"\s+", " ", regex=True)
+                .str.replace(r"\s+([.,!>])", r"\1", regex=True)
+                .str.strip()
+            )
 
             # save processed data
-            df.to_csv(dst, index=False)
+            df.to_csv(dst, index=False, quoting=csv.QUOTE_ALL)
 
     process_ns()
     process_cnn_dm()
