@@ -5,3 +5,11 @@ matplotlib
 notebook
 kaggle
 pylint
+
+# summarisation model
+transformers
+torch
+evaluate
+accelerate>=1.1.0
+nltk
+rouge_score
