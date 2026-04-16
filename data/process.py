@@ -14,8 +14,26 @@ import re
 from IPython.core import ultratb
 sys.excepthook = ultratb.FormattedTB(color_scheme='Linux', call_pdb=False)
 
-# ----- file paths ---------------
+# utility constants
 BASE = os.path.join(os.path.dirname(__file__))
+
+# utility functions
+# cleaning text
+def clean(text):
+    return (
+        str(text)
+        .replace("\n", " ")
+        .replace("\r", " ")
+        .replace("?", "")
+        .strip()
+    )
+
+def requirements():
+    # check if raw exists
+    if not os.path.exists(os.path.join(BASE, "raw")):
+        print("[ERROR] Raw data directory not found.")
+        print("[HINT] Please run 'python data/retrieve.py' first.")
+        sys.exit(1)
 
 def ensure_dirs():
     # sentiment stuff
@@ -95,8 +113,7 @@ def standardize_fpb(fpb_raw_path, output_path):
 
     df = df[["data", "datatype", "sentiment"]].copy()
     df = df.dropna(subset=["data", "sentiment"])
-    df["data"] = df["data"].astype(str).str.strip()
-    df = df[df["data"] != ""]
+    df["data"] = df["data"].astype(str).apply(clean)
 
     df.to_csv(output_path, index=False)
     return df
@@ -127,8 +144,7 @@ def standardize_fmb(fmb_raw_path, output_path):
 
     df = df[["data", "datatype", "sentiment"]].copy()
     df = df.dropna(subset=["data", "sentiment"])
-    df["data"] = df["data"].astype(str).str.strip()
-    df = df[df["data"] != ""]
+    df["data"] = df["data"].astype(str).apply(clean)
 
     df.to_csv(output_path, index=False)
     return df
@@ -169,8 +185,6 @@ def standardize_sentiment(paths):
     else:
         print("No sentiment data found to process.")
 
-
-
 def process_summary_dataset(paths):
     # dataset 1: news summary
     def process_ns():
@@ -196,15 +210,6 @@ def process_summary_dataset(paths):
 
         df = df[["article", "summary"]]
 
-        # cleaning
-        def clean(text):
-            return (
-                str(text)
-                .replace("\n", " ")
-                .replace("\r", " ")
-                .replace("?", "")
-                .strip()
-            )
         df["article"] = df["article"].apply(clean)
         df["summary"] = df["summary"].apply(clean)
 
@@ -234,9 +239,8 @@ def process_summary_dataset(paths):
             )
             df = df[["article", "summary"]]
 
-            # cleaning
-            df["article"] = df["article"].str.strip()
-            df["summary"] = df["summary"].str.strip()
+            df["article"] = df["article"].apply(clean)
+            df["summary"] = df["summary"].apply(clean)
 
             # save processed data
             df.to_csv(dst, index=False)
@@ -247,14 +251,16 @@ def process_summary_dataset(paths):
 
 # main
 if __name__ == "__main__":
+    print("Checking requirements to run code...")
+    requirements()
+    
     print("Processing datasets...")
-
     paths = ensure_dirs()
 
-    print("\n\nStandardizing sentiment datasets...")
+    print("\nStandardizing sentiment datasets...")
     standardize_sentiment(paths)
 
-    print("\n\nProcessing news summary datasets...")
+    print("\nProcessing news summary datasets...")
     process_summary_dataset(paths)
 
-    print("\n\nDatasets processed successfully.")
+    print("\nDatasets processed successfully.")

@@ -11,7 +11,6 @@ import sys
 import shutil
 import datasets
 import pandas as pd
-
 from IPython.core import ultratb
 sys.excepthook = ultratb.FormattedTB(color_scheme='Linux', call_pdb=False)
 
@@ -130,10 +129,11 @@ def get_summary_dataset(paths):
 
 
 if __name__ == "__main__":
-    print("Downloading datasets...\n")
-    
     # pre-req stuff
+    print("Checking requirements to run code...")
     requirements()
+    
+    print("Downloading datasets...")
     paths = ensure_dirs()
 
     # sentiment dataset
