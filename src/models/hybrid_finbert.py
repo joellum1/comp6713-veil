@@ -31,8 +31,6 @@ from transformers import (
     PretrainedConfig,
 )
 
-# ── constants ────────────────────────────────────────────────────────────────
-
 MODEL_NAME = "ProsusAI/finbert"
 SAVE_DIR = "./my_finbert_lm_model"
 REPORT_DIR = "./report"
@@ -47,7 +45,7 @@ LM_CATEGORIES = [
 LABEL_MAP = {"negative": 0, "neutral": 1, "positive": 2}
 
 
-# Expects teammate's CSV with columns: data, sentiment, sentiment_list
+# Expects CSV with columns: data, sentiment, sentiment_list
 # sentiment_list is a Python list stored as a string, e.g.:
 #   "['cns', 'positive', 'negative', 'uncertainty', 'cns']"
 def load_data(csv_path: str) -> pd.DataFrame:
