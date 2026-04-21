@@ -211,8 +211,8 @@ def save_confusion_matrix(trainer, test_dataset, save_path=REPORT_DIR):
     plt.show()
 
 def main():
-    # TODO: replace with actual path
-    CSV_PATH = "./data/processed/sentiment/sentiment_list.csv"
+    # train.py
+    CSV_PATH = "../data/processed/sentiment/sentiment_list.csv"
     df = load_data(CSV_PATH)
 
     train_val, test = train_test_split(
