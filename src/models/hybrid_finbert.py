@@ -31,6 +31,7 @@ from transformers import (
     PretrainedConfig,
 )
 
+REPO_ROOT   = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 MODEL_NAME = "ProsusAI/finbert"
 SAVE_DIR = "./my_finbert_lm_model"
 REPORT_DIR = "./report"
@@ -211,8 +212,7 @@ def save_confusion_matrix(trainer, test_dataset, save_path=REPORT_DIR):
     plt.show()
 
 def main():
-    # train.py
-    CSV_PATH = "../data/processed/sentiment/sentiment_list.csv"
+    CSV_PATH = os.path.join(REPO_ROOT, "data", "processed", "sentiment", "sentiment_list.csv")
     df = load_data(CSV_PATH)
 
     train_val, test = train_test_split(
