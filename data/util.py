@@ -1,3 +1,7 @@
+import os
+
+BASE = os.path.dirname(os.path.abspath(__file__))
+
 def ensure_dirs():
     sentiment_datasets = os.path.join(BASE, "sentiment_datasets")
     raw_dir = os.path.join(sentiment_datasets, "raw")
@@ -17,3 +21,9 @@ def ensure_dirs():
         "fpb": fpb_dir,
         "fmb": fmb_dir,
     }
+
+def save_dataframe(df, path):
+    """
+    Save a pandas DataFrame to a CSV file.
+    """
+    df.to_csv(path, index=False)

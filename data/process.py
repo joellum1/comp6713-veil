@@ -248,7 +248,6 @@ def process_summary_dataset(paths):
 # main
 if __name__ == "__main__":
     print("Processing datasets...")
-
     paths = ensure_dirs()
 
     print("\n\nStandardizing sentiment datasets...")
