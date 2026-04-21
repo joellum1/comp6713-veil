@@ -1,0 +1,22 @@
+
+
+  FUNCTION: load_masterdictionary(file_path, print_flag, f_log, get_other)
+
+    file_path  = data/Loughran-McDonald_MasterDictionary_1993-2025.csv
+    print_flag = True
+    f_log      = ./notebooks/Load_MD_Logfile.txt
+    get_other  = True
+
+    86,553 words loaded in master_dictionary.
+
+    Sentiment:
+      negative     :    2,355
+      positive     :      354
+      uncertainty  :      297
+      litigious    :      905
+      strong_modal :       19
+      weak_modal   :       27
+      constraining :      184
+      complexity   :       53
+
+  END FUNCTION: load_masterdictionary: 0:00:00.744545
