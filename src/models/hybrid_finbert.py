@@ -211,8 +211,10 @@ def save_confusion_matrix(trainer, test_dataset, save_path=REPORT_DIR):
     plt.show()
 
 def main():
-    # train.py
-    CSV_PATH = "../data/processed/sentiment/sentiment_list.csv"
+    # Resolve CSV relative to this file (src/models/) so the script works
+    # regardless of the cwd we're invoked from.
+    REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    CSV_PATH = os.path.join(REPO_ROOT, "data", "processed", "sentiment", "sentiment_list.csv")
     df = load_data(CSV_PATH)
 
     train_val, test = train_test_split(
