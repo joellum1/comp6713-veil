@@ -16,7 +16,9 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
-
+REPO_ROOT = os.path.join(os.path.dirname(__file__), "..")
+sys.path.append(REPO_ROOT)
+from data import util
 
 # Loughran-McDonald Master Dictionary
 """
@@ -206,6 +208,9 @@ def main():
 
     # Tag tokens & predict sentiment
     df["sentiment_list"] = df["data"].apply(lambda text: map_function(text, master_dictionary))
+    # save a file holding "data", "sentiment", and "sentiment_list"
+    util.save_dataframe(df[["data", "sentiment", "sentiment_list"]], "./data/processed/sentiment/sentiment_list.csv")
+    # carry on with rule based prediction
     df["predicted_sentiment"] = df["sentiment_list"].apply(map_sentiment)
     # Normalise to positive / negative / neutral
     df["predicted_sentiment"] = df["predicted_sentiment"].map(SENTIMENT_NORMALISATION)
