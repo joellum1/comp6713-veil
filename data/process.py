@@ -11,6 +11,7 @@ import sys
 import datasets
 import pandas as pd
 import re
+import unicodedata
 from IPython.core import ultratb
 sys.excepthook = ultratb.FormattedTB(call_pdb=False)
 
@@ -44,7 +45,32 @@ def ensure_dirs():
         "processed_summary": processed_dir_summary,
     }
 
-# ----- sentiment helpers ------------------
+# helper functions
+def clean_text(text):
+    # nicode normalisation -> ASCII where possible
+    text = unicodedata.normalize("NFKD", text)
+    text = text.encode("ascii", "ignore").decode("ascii")
+    # strip basic HTML tags / entities
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"&[a-z]+;", " ", text)
+    # expand common English contractions
+    contractions = {
+        r"won\'t": "will not", r"can\'t": "cannot", r"n\'t": " not",
+        r"\'re": " are",      r"\'s":  " is",       r"\'d":  " would",
+        r"\'ll": " will",     r"\'ve": " have",      r"\'m":  " am",
+    }
+    for pattern, replacement in contractions.items():
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+    text = text.lower()
+    text = re.sub(r"\s+", " ", text).strip()
+    return (str(text)
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .replace("?", "")
+                .strip()
+            )
+
+# sentiment helpers
 def normalize_sentiment(value):
     """
     Normalize sentiment labels into:
@@ -53,7 +79,6 @@ def normalize_sentiment(value):
     """
     if pd.isna(value):
         return None
-
     # numeric case
     if isinstance(value, (int, float)):
         if value > 0:
@@ -61,9 +86,7 @@ def normalize_sentiment(value):
         if value < 0:
             return "negative"
         return "neutral"
-
     s = str(value).strip().lower()
-
     mapping = {
         "positive": "positive",
         "negative": "negative",
@@ -72,7 +95,6 @@ def normalize_sentiment(value):
         "0": "neutral",
         "-1": "negative",
     }
-
     return mapping.get(s, None)
 
 
@@ -89,15 +111,12 @@ def standardize_fpb(fpb_raw_path, output_path):
         names=["sentiment", "data"],
         encoding="latin1"
     )
-
     df["datatype"] = "sentence"
     df["sentiment"] = df["sentiment"].apply(normalize_sentiment)
-
     df = df[["data", "datatype", "sentiment"]].copy()
     df = df.dropna(subset=["data", "sentiment"])
     df["data"] = df["data"].astype(str).str.strip()
     df = df[df["data"] != ""]
-
     df.to_csv(output_path, index=False)
     return df
 
@@ -108,7 +127,6 @@ def standardize_fmb(fmb_raw_path, output_path):
         data, datatype, sentiment
     """
     df = pd.read_csv(fmb_raw_path, encoding="latin1")
-
     # Expected useful columns:
     # Title -> headline
     # Global Sentiment -> label (-1, 0, 1)
@@ -147,18 +165,20 @@ def standardize_sentiment(paths):
     fpb_std_path = os.path.join(paths["processed_sentiment"], "fpb_standardized.csv")
     fmb_std_path = os.path.join(paths["processed_sentiment"], "fmb_standardized.csv")
     stitched_path = os.path.join(paths["processed_sentiment"], "stitched_sentiment.csv")
-
     # standardizing all the raw files
     standardized_dfs = []
     print("Raw sentiment files:", paths["sentiment_raw_files"])
     for sentiment_raw_file_path in paths["sentiment_raw_files"]:
         if re.search("FPB", sentiment_raw_file_path):
             fpb_df = standardize_fpb(sentiment_raw_file_path, fpb_std_path)
+            fpb_df["data"] = fpb_df["data"].apply(clean_text)
+            fpb_df = fpb_df[fpb_df["data"] != ""]
             standardized_dfs.append(fpb_df)
         elif re.search("FMB", sentiment_raw_file_path):
             fmb_df = standardize_fmb(sentiment_raw_file_path, fmb_std_path)
+            fmb_df["data"] = fmb_df["data"].apply(clean_text)
+            fmb_df = fmb_df[fmb_df["data"] != ""]
             standardized_dfs.append(fmb_df)
-    
     if standardized_dfs:
         combined_df = stitch_datasets(standardized_dfs, stitched_path)
         print("\nSaved files:")
@@ -176,26 +196,20 @@ def process_summary_dataset(paths):
     def process_ns():
         processed_ns = os.path.join(paths["processed_summary"], "NS")
         os.makedirs(processed_ns, exist_ok=True)
-
         raw_ns = os.path.join(paths["summary_raw_dir"], "NS")
         src = os.path.join(raw_ns, "full.csv")
         dst = os.path.join(processed_ns, "full.csv")
-
         if not os.path.exists(src):
             print(f"File not found: {src}")
             return
-
         df = pd.read_csv(src, encoding="latin-1")
-
         df = df.rename(
             columns={
                 "ctext": "article",
                 "text": "summary"
             }
         )
-
         df = df[["article", "summary"]]
-
         # cleaning
         def clean(text):
             return (
@@ -207,7 +221,6 @@ def process_summary_dataset(paths):
             )
         df["article"] = df["article"].apply(clean)
         df["summary"] = df["summary"].apply(clean)
-
         # save processed data
         df.to_csv(dst, index=False)
         print(f"Saved processed NS to {dst}")
@@ -216,16 +229,13 @@ def process_summary_dataset(paths):
     def process_cnn_dm():
         processed_cnn_dm = os.path.join(paths["processed_summary"], "CNN_DM")
         os.makedirs(processed_cnn_dm, exist_ok=True)
-
         raw_cnn_dm = os.path.join(paths["summary_raw_dir"], "CNN_DM")
         for split in ["test", "train", "validation"]:
             src = os.path.join(raw_cnn_dm, f"{split}.csv")
             dst = os.path.join(processed_cnn_dm, f"{split}.csv")
-
             if not os.path.exists(src):
                 print(f"File not found: {src}")
                 continue
-
             df = pd.read_csv(src)
             df = df.rename(
                 columns={
@@ -233,11 +243,9 @@ def process_summary_dataset(paths):
                 }
             )
             df = df[["article", "summary"]]
-
             # cleaning
             df["article"] = df["article"].str.strip()
             df["summary"] = df["summary"].str.strip()
-
             # save processed data
             df.to_csv(dst, index=False)
             print(f"Saved processed CNN_DM {split} to {dst}")
@@ -249,11 +257,8 @@ def process_summary_dataset(paths):
 if __name__ == "__main__":
     print("Processing datasets...")
     paths = ensure_dirs()
-
     print("\n\nStandardizing sentiment datasets...")
     standardize_sentiment(paths)
-
     print("\n\nProcessing news summary datasets...")
     process_summary_dataset(paths)
-
     print("\n\nDatasets processed successfully.")
