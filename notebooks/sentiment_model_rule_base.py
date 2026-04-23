@@ -15,12 +15,14 @@ from sklearn.metrics import (
     f1_score,
     precision_score,
     recall_score,
+    confusion_matrix,
+    ConfusionMatrixDisplay,
 )
 REPO_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(REPO_ROOT)
 from data import util
 
-# Loughran-McDonald Master Dictionary
+# Loughran-McDonald Master Dictionary (CODE FROM SOURCE)
 """
     Code taken from source website
     Load the L&M Master Dictionary from a CSV file downloaded locally in ./data directory
@@ -126,7 +128,7 @@ def load_masterdictionary(file_path, print_flag=False, f_log=None, get_other=Fal
         return _master_dictionary, _md_header, _sentiment_categories, _sentiment_dictionaries, _stopwords, _total_documents
     else:
         return _master_dictionary
-
+# Loughran-McDonald Master Dictionary (CODE FROM SOURCE <END>)
 
 
 # map_function : (string, dictionary) -> [(positive 
@@ -220,23 +222,24 @@ def main():
     y_true = eval_df["sentiment"]
     y_pred = eval_df["predicted_sentiment"]
     labels = ["positive", "negative", "neutral"]
-    precision = precision_score(y_true, y_pred, labels=labels, average=None, zero_division=0)
-    recall = recall_score(y_true, y_pred, labels=labels, average=None, zero_division=0)
-    f1 = f1_score(y_true, y_pred, labels=labels, average=None, zero_division=0)
-    metrics_df = pd.DataFrame(
-        {"Precision": precision, "Recall": recall, "F1 Score": f1},
-        index=labels,
-    )
-    print("Per-Class Metrics:")
-    print(metrics_df.round(4))
-    print("\nAggregated Metrics:")
-    for avg in ["macro", "weighted"]:
-        p = precision_score(y_true, y_pred, average=avg, zero_division=0)
-        r = recall_score(y_true, y_pred, average=avg, zero_division=0)
-        f = f1_score(y_true, y_pred, average=avg, zero_division=0)
-        print(f"{avg.capitalize():10} -> Precision: {p:.4f} | Recall: {r:.4f} | F1: {f:.4f}")
-    print("\nFull Classification Report:")
-    print(classification_report(y_true, y_pred, labels=labels, zero_division=0))
+    accuracy_rule_base = accuracy_score(y_true, y_pred) * 100
+    p = precision_score(y_true, y_pred, average="weighted")
+    r = recall_score(y_true, y_pred, average="weighted")
+    f = f1_score(y_true, y_pred, average="weighted")
+    # print the results
+    print(f"Rule-Based Accuracy: {accuracy_rule_base:.2f}%")
+    print(f"Precision (weighted): {p:.4f}")
+    print(f"Recall (weighted): {r:.4f}")
+    print(f"F1 Score (weighted): {f:.4f}")
+    # confusion matrix
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
+    # save the confusion matrix
+    fig, ax = plt.subplots(figsize=(8, 6))
+    disp.plot(ax=ax, cmap=plt.cm.Blues)
+    plt.title("Confusion Matrix - Rule-Based Sentiment Model")
+    plt.savefig("notebooks/report/rule_base_confusion_matrix.png")
+    print("\nConfusion matrix saved to notebooks/report/rule_base_confusion_matrix.png")
 
 
 if __name__ == "__main__":
