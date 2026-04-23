@@ -26,9 +26,47 @@ See `data/README.md` for full download and placement instructions.
 
 ## Project Execution
 
-**DO NOT commit notebook outputs**
+### Run `notebooks/langchain_pipeline_demo.ipynb` from scratch
 
-*(To be completed)*
+The LangChain demo notebook uses BART + FinBERT + L&M lexicon pipeline
+implemented in `src/pipeline/`.
+
+Use the steps below exactly (recommended for a clean first run):
+
+```bash
+# 1) Create and activate a clean Python 3.11 environment
+conda create -n 6731 python=3.11 -y
+conda activate 6731
+
+# 2) Enter project root
+cd /path/to/comp6713-veil
+
+# 3) Install dedicated notebook/pipeline dependencies
+#    (use this file, not requirements.txt)
+pip install -r requirements-pipeline.txt
+
+# 4) Register Jupyter kernel for this env
+python -m ipykernel install --user --name 6731 --display-name "Python (6731)"
+
+# 5) Launch notebook
+jupyter notebook notebooks/langchain_pipeline_demo.ipynb
+```
+
+In Jupyter:
+1. Switch kernel to **Python (6731)**.
+2. Restart kernel once.
+3. Run all cells from top to bottom.
+
+If you see dependency errors, verify versions:
+
+```bash
+python -c "import numpy, torch, transformers; print(numpy.__version__, torch.__version__, transformers.__version__)"
+```
+
+Expected compatible range:
+- `numpy < 2`
+- `transformers >= 4.49, < 5`
+- `torch >= 2.2`
 
 ---
 

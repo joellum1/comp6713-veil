@@ -7,5 +7,8 @@ kaggle
 datasets
 pylint
 langchain
+langchain-core
+pydantic>=2
 torch
 transformers
+evaluate
