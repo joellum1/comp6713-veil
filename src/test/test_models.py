@@ -1,6 +1,6 @@
 import os
 import sys
-from transformers import BertTokenizer, BertForSequenceClassification
+from transformers import BertTokenizer, BertForSequenceClassification, RobertaTokenizer, BartForConditionalGeneration
 from pprint import pprint
 import torch
 import joblib
@@ -32,6 +32,15 @@ def clean_text(text):
                 .strip()
             )
 
+def clean(text):
+    return (
+        str(text)
+        .replace("\n", " ")
+        .replace("\r", " ")
+        .replace("?", "")
+        .strip()
+    )
+
 if __name__ == "__main__":
     quit = False
     choices = ["1", "2", "3", "4"]
@@ -44,6 +53,10 @@ if __name__ == "__main__":
     STATISTICAL_MODEL_DIR = "./src/models/sentiment_statistical_model"
     sentiment_svm_model = joblib.load(f"{STATISTICAL_MODEL_DIR}/svm_model.pkl")
     sentiment_tfidf_vectorizer = joblib.load(f"{STATISTICAL_MODEL_DIR}/tfidf_vectorizer.pkl")
+    # load summarization model
+    SUMMARIZATION_MODEL_DIR = "./src/models/bart-final-ns"
+    summarization_tokenizer = RobertaTokenizer.from_pretrained(SUMMARIZATION_MODEL_DIR)
+    summarization_model = BartForConditionalGeneration.from_pretrained(SUMMARIZATION_MODEL_DIR)
     while not quit:
         print("\n" + "="*60)
         print("TESTING MENU")
@@ -61,9 +74,47 @@ if __name__ == "__main__":
             if choice == "4":
                 quit = True
                 continue
-            # get input text
+            if choice == "3":
+                # get filename instead of raw text
+                filename = input("Enter filename (e.g. article.txt): ").strip()
+                filepath = os.path.join("./src/test/testing_data", filename)
+                if not os.path.exists(filepath):
+                    print(f"File not found: {filepath}")
+                    continue
+                if not filename.endswith(".txt"):
+                    print("Only .txt files are supported.")
+                    continue
+                text = ""
+                with open(filepath, "r", encoding="utf-8") as f:
+                    text = f.read()
+                # matches with the cleaning done with summary model
+                text = clean(text)
+                # run summarization
+                summarization_model.eval()
+                inputs = summarization_tokenizer(
+                    text,
+                    return_tensors="pt",
+                    truncation=True,
+                    max_length=1024,
+                    padding=True
+                )
+                with torch.no_grad():
+                    # hyper params over here matches the hyper params for the best model by the group
+                    summary_ids = summarization_model.generate(
+                        inputs["input_ids"],
+                        num_beams=4,
+                        length_penalty=2.0,
+                        max_length=128,
+                        min_length=55,
+                        no_repeat_ngram_size=3,
+                        early_stopping=True
+                    )
+                    summary = summarization_tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+                    print(f"\nSummary:\n{summary}")
+                continue
+            # get input text if choice is 1 | 2
             text = input("Enter text to analyze: ")
-            # clean text
+            # clean text -> matches with the cleaning done with sentiment analysis
             text = clean_text(text)            
             if choice == "1":
                 # Transform input text using the saved vectorizer
@@ -78,7 +129,7 @@ if __name__ == "__main__":
                 print(f"Label: {label}")
                 print(f"Scores:")
                 pprint(class_scores)
-            elif choice == "2":
+            else:
                 sentiment_model.eval()
                 inputs = sentiment_tokenizer(
                     text,
@@ -99,7 +150,4 @@ if __name__ == "__main__":
                         "scores": {id2label[i]: probs[i].item() for i in range(3)}
                     }
                     pprint(result)
-            else:
-                pass
-                # os.system("python src/test/test_lstm_model.py")
             
