@@ -19,3 +19,4 @@ data/processed
 best_finbert_model/
 notebooks/my_finbert_model/
 notebooks/results/
+results/
