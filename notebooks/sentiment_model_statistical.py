@@ -14,6 +14,7 @@ from sklearn import svm
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 import os
+import joblib
 
 def main():
     # load data
@@ -40,6 +41,10 @@ def main():
     print(f"Precision (weighted): {precision:.4f}")
     print(f"Recall (weighted): {recall:.4f}")
     print(f"F1 Score (weighted): {f1:.4f}")
+    # save model
+    os.makedirs("src/models/sentiment_statistical_model", exist_ok=True)
+    joblib.dump(rbf, "src/models/sentiment_statistical_model/svm_model.pkl")
+    joblib.dump(tfidf, "src/models/sentiment_statistical_model/tfidf_vectorizer.pkl")
     # confusion matrix
     cm = confusion_matrix(y_test, pred_rbf)
     # map numeric labels back to strings

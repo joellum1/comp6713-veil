@@ -10,6 +10,10 @@ venv/
 data/raw
 data/processed
 
+# ignore models
+src/models/finbert_model
+src/models/finbert_model-20260423T141441Z-3-001.zip
+
 # jupyter checkpoints
 .ipynb_checkpoints/
 
