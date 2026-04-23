@@ -38,8 +38,8 @@ REPORT_DIR  = os.path.join(REPO_ROOT, "results", "report")
 RESULTS_DIR = os.path.join(REPO_ROOT, "results", "checkpoints")
 MAX_LEN     = 128
 
-LABEL_MAP    = {"negative": 0, "neutral": 1, "positive": 2}
-LABEL_DECODE = {0: "negative", 1: "neutral", 2: "positive"}
+LABEL_MAP    = {"positive": 0, "negative": 1, "neutral": 2}
+LABEL_DECODE = {0: "positive", 1: "negative", 2: "neutral"}
 
 # L&M categories used for bias detection
 # - uncertainty  : "may", "possible", "pending" — hedging language
@@ -223,7 +223,7 @@ def save_confusion_matrix(trainer, test_dataset, save_path=REPORT_DIR):
     y_true = predictions.label_ids
 
     cm     = confusion_matrix(y_true, y_pred)
-    labels = ["Negative", "Neutral", "Positive"]
+    labels = ["Positive", "Negative", "Neutral"]
 
     fig, ax = plt.subplots(figsize=(8, 8))
     ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels).plot(
