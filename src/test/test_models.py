@@ -18,8 +18,8 @@ def clean_text(text):
     # expand common English contractions
     contractions = {
         r"won\'t": "will not", r"can\'t": "cannot", r"n\'t": " not",
-        r"\'re": " are",      r"\'s":  " is",       r"\'d":  " would",
-        r"\'ll": " will",     r"\'ve": " have",      r"\'m":  " am",
+        r"\'re": " are", r"\'s": " is", r"\'d": " would",
+        r"\'ll": " will", r"\'ve": " have", r"\'m": " am",
     }
     for pattern, replacement in contractions.items():
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
@@ -141,7 +141,7 @@ if __name__ == "__main__":
                 with torch.no_grad(): 
                     outputs = sentiment_model(**inputs)
                     probs = torch.softmax(outputs.logits, dim=-1).squeeze()
-                    # Map to labels (from your config.json)
+                    # map to labels (from your config.json)
                     id2label = {0: "positive", 1: "negative", 2: "neutral"}
                     predicted_id = probs.argmax().item()
                     result = {
