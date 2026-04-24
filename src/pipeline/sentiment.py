@@ -9,19 +9,19 @@ from langchain_core.runnables import RunnableLambda
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from src.models.finbert import LABEL_DECODE, MAX_LEN
+from src.pipeline._checkpoint import resolve_local_or_hub
 from src.pipeline.schema import SentimentSignal
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_FINETUNED_DIR = REPO_ROOT / "results" / "finbert_model"
+
+CANDIDATE_LOCAL_DIRS = (
+    REPO_ROOT / "results" / "finbert_model",
+)
 FALLBACK_HF_ID = "ProsusAI/finbert"
 
 
 def _resolve_source(model_dir: Optional[str | Path]) -> str:
-    if model_dir is not None:
-        return str(model_dir)
-    if DEFAULT_FINETUNED_DIR.exists():
-        return str(DEFAULT_FINETUNED_DIR)
-    return FALLBACK_HF_ID
+    return resolve_local_or_hub(model_dir, CANDIDATE_LOCAL_DIRS, FALLBACK_HF_ID)
 
 
 def _resolve_device(device: Optional[str]) -> str:
