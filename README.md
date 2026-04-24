@@ -48,7 +48,9 @@ pip install -r requirements-pipeline.txt
 # 4) Register Jupyter kernel for this env
 python -m ipykernel install --user --name 6731 --display-name "Python (6731)"
 
-# 5) Launch notebook
+# 5) (optional) Drop in pre-trained checkpoints — see "Pre-trained checkpoints" below
+
+# 6) Launch notebook
 jupyter notebook notebooks/langchain_pipeline_demo.ipynb
 ```
 
@@ -56,6 +58,26 @@ In Jupyter:
 1. Switch kernel to **Python (6731)**.
 2. Restart kernel once.
 3. Run all cells from top to bottom.
+
+#### Pre-trained checkpoints (optional)
+
+If you don't want to fine-tune locally (BART training on CNN/DailyMail takes
+hours), download the team's checkpoints from Google Drive and place them under
+`results/`. The pipeline will pick them up automatically:
+
+| Model | Drive folder | Local destination |
+|---|---|---|
+| BART (News Summary) | [bart-final-ns](https://drive.google.com/drive/folders/1p5FuQAvQoguGp_hCBpqYiSF5_ofr9K9W?usp=sharing) | `results/bart-final-ns/` |
+| FinBERT | [finbert_model](https://drive.google.com/drive/folders/1udKH-F7yfQeDBfP06MpvHBJwgCfDmwS7?usp=sharing) | `results/finbert_model/` |
+
+```bash
+mkdir -p results/bart-final-ns results/finbert_model
+# Then download every file inside each Drive folder into the matching
+# local directory (config.json, model.safetensors, tokenizer.json, ...).
+```
+
+Without these, the pipeline auto-downloads `facebook/bart-large-cnn` (~1.6 GB)
+and `ProsusAI/finbert` (~400 MB) from the Hugging Face Hub on first run.
 
 If you see dependency errors, verify versions:
 
