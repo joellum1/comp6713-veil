@@ -1,11 +1,4 @@
-"""Shared local-checkpoint resolution for the LangChain pipeline wrappers.
-
-Both :mod:`src.pipeline.summarizer` and :mod:`src.pipeline.sentiment` need the
-same logic: try a list of local checkpoint directories first, fall back to a
-Hugging Face Hub model ID when none of them exist. For BART we additionally
-pick the *best* of multiple local fine-tunes by reading the side-car metric
-JSON the team's training notebooks emit.
-"""
+"""Shared local-checkpoint resolution for the LangChain pipeline wrappers."""
 
 from __future__ import annotations
 
@@ -21,12 +14,7 @@ def resolve_local_or_hub(
     candidates: Iterable[Path],
     hub_fallback: str,
 ) -> str:
-    """Return the first existing candidate when ``model_dir`` is None.
-
-    * Explicit ``model_dir`` always wins.
-    * Otherwise the first directory in ``candidates`` that exists is used.
-    * If none exist, ``hub_fallback`` is returned (Hugging Face Hub model id).
-    """
+    """Return the first existing local candidate, else the Hub fallback model id."""
     if model_dir is not None:
         return str(model_dir)
     for c in candidates:
@@ -42,16 +30,7 @@ def pick_best_bart(
     metrics_dir: Path,
     metric_key: str = "final_test_rougeL",
 ) -> str:
-    """Like :func:`resolve_local_or_hub`, but for BART picks the highest-scoring
-    locally-trained checkpoint based on the metrics JSON next to it.
-
-    Mapping convention (matches notebooks/summarisation*.ipynb):
-        ``results/bart-final-<dataset>``    ↔
-        ``results/report/final_metrics_<dataset>.json``
-
-    A directory without a readable metrics file is still eligible but ranked
-    after any scored candidate.
-    """
+    """Pick the local BART checkpoint with highest test rougeL, else fall back to the Hub."""
     if model_dir is not None:
         return str(model_dir)
 
@@ -78,11 +57,7 @@ def pick_best_bart(
 def _read_score(
     model_dir: Path, metrics_dir: Path, metric_key: str
 ) -> Optional[float]:
-    """Look up ``results/report/final_metrics_<dataset>.json`` for the given
-    ``bart-final-<dataset>`` directory and return its ``test.<metric_key>``.
-
-    Returns ``None`` if the file or key is missing or unreadable.
-    """
+    """Return ``test.<metric_key>`` from final_metrics_<dataset>.json, or None if missing."""
     name = model_dir.name
     if not name.startswith("bart-final-"):
         return None

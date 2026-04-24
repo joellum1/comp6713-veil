@@ -14,11 +14,6 @@ from src.pipeline._checkpoint import pick_best_bart
 REPO_ROOT = Path(__file__).resolve().parents[2]
 METRICS_DIR = REPO_ROOT / "results" / "report"
 
-# Local fine-tuned BART checkpoints emitted by the team's training notebooks.
-# When the caller does not pass ``model_dir`` explicitly we pick whichever has
-# the highest ``test.final_test_rougeL`` in its sidecar metrics JSON. A
-# checkpoint without a metrics file is still usable but ranked last.
-# If no local checkpoint exists at all we fall back to the Hub model below.
 CANDIDATE_LOCAL_DIRS = (
     REPO_ROOT / "results" / "bart-final-cnn_dm",
     REPO_ROOT / "results" / "bart-final-ns",
@@ -70,8 +65,6 @@ def build_summarizer_runnable(
     model = BartForConditionalGeneration.from_pretrained(source)
     model.to(resolved_device).eval()
 
-    # Match summarisation.ipynb's overrides so we don't fight bart-base's
-    # generation_config.max_length=20 default.
     model.generation_config.max_length = None
     model.generation_config.early_stopping = True
     model.generation_config.num_beams = num_beams

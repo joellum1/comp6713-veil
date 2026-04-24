@@ -14,8 +14,6 @@ from src.pipeline.schema import SentimentSignal
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-# Local fine-tuned FinBERT checkpoints. First existing entry wins; only one
-# slot today, list-shaped so adding a sentiment_model_v2 later is a one-liner.
 CANDIDATE_LOCAL_DIRS = (
     REPO_ROOT / "results" / "finbert_model",
 )
