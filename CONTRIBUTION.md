@@ -31,3 +31,14 @@
 6. Created evaluation definitions to output confusion matrices and learning curves for performance tracking.
 7. Performed Qualitative Evaluation of model predictions, identifying and categorizing common misclassification patterns.
 8. Contributed to the report sections regarding model design, training result, and error analysis.
+
+
+## Raymond (zID - z5479272)
+1. Led the report integration for the sentiment analysis component, turning technical implementation details from multiple teammates into a coherent modelling and evaluation narrative.
+2. Wrote and refined the report sections for Problem Definition, Dataset Selection, and the FinBERT sentiment modelling and quantitative evaluation components.
+3. Helped debug the sentiment data-processing workflow by identifying the earlier duplicate concatenation / double-counting issue in the processed dataset pipeline and confirming the corrected final setup with teammates.
+4. Synthesised the rationale behind the three-stage sentiment pipeline (Loughran–McDonald baseline, TF-IDF + SVM baseline, and fine-tuned FinBERT) to ensure the report clearly explained model progression and justification.
+5. Interpreted quantitative results from the final FinBERT run, including accuracy, weighted F1, validation curves, and confusion matrix behaviour, and translated them into report-ready analysis.
+6. Identified cross-section inconsistencies and clarified final modelling decisions with teammates, including dataset usage, class imbalance treatment, weighted loss implementation, and the role of lexicon-based components.
+7. Helped build the presentation for the sentiment analysis section by converting the report content into slide material for a technical audience and maintained aesthetic design.
+
