@@ -92,10 +92,6 @@ Expected compatible range:
 
 ---
 
-## Results
-
-*(To be completed)*
-
 ## Testing CMD Interface
 
 ### Preliminaries
