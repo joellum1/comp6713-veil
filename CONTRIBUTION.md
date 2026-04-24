@@ -1,9 +1,11 @@
 # Contribution
 
-## Gala (zID - z5242812) (Part C - LangChain integration)
+## Gala (zID - z5242812)
 
-End-to-end orchestration layer that wires the team's models into a single
-schema-validated reliability report.
+1. Designed and implemented the end-to-end LangChain reliability pipeline.
+2. Refactored the two summarisation notebooks (`notebooks/summarisation.ipynb` and `notebooks/summarisation_ns.ipynb`).
+3. Optimised BART fine-tuning hyperparameters across CNN/DailyMail and News Summary, ran the training, and produced the quantitative ROUGE results.
+4. Contributed to the report (wrote the *System Integration with LangChain* subsection of the Modelling chapter).
 
 ## Joel (zID - z5481782)
 
