@@ -9,8 +9,21 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableLambda
 from transformers import BartForConditionalGeneration, BartTokenizer
 
+from src.pipeline._checkpoint import pick_best_bart
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_FINETUNED_DIR = REPO_ROOT / "results" / "bart_summariser"
+METRICS_DIR = REPO_ROOT / "results" / "report"
+
+# Local fine-tuned BART checkpoints emitted by the team's training notebooks.
+# When the caller does not pass ``model_dir`` explicitly we pick whichever has
+# the highest ``test.final_test_rougeL`` in its sidecar metrics JSON. A
+# checkpoint without a metrics file is still usable but ranked last.
+# If no local checkpoint exists at all we fall back to the Hub model below.
+CANDIDATE_LOCAL_DIRS = (
+    REPO_ROOT / "results" / "bart-final-cnn_dm",
+    REPO_ROOT / "results" / "bart-final-ns",
+    REPO_ROOT / "results" / "bart_summariser",
+)
 FALLBACK_HF_ID = "facebook/bart-large-cnn"
 
 NEUTRAL_PROMPT = PromptTemplate.from_template(
@@ -21,11 +34,12 @@ NEUTRAL_PROMPT = PromptTemplate.from_template(
 
 
 def _resolve_source(model_dir: Optional[str | Path]) -> str:
-    if model_dir is not None:
-        return str(model_dir)
-    if DEFAULT_FINETUNED_DIR.exists():
-        return str(DEFAULT_FINETUNED_DIR)
-    return FALLBACK_HF_ID
+    return pick_best_bart(
+        model_dir,
+        CANDIDATE_LOCAL_DIRS,
+        FALLBACK_HF_ID,
+        METRICS_DIR,
+    )
 
 
 def _resolve_device(device: Optional[str]) -> str:
